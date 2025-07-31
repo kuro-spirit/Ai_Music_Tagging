@@ -2,14 +2,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class CNNGenreClassifier(nn.module):
-    def __init__(self, numClasses):
+class CNNGenreClassifier(nn.Module):
+    def __init__(self, numClasses, input_shape=(1, 128, 216)):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
         self.dropout = nn.Dropout(0.3)
-        self.fc1 = nn.Linear(32 * 32 * 43, 128)  # depends on input size; adjust if needed
+
+        with torch.no_grad():
+            x = torch.zeros(1, *input_shape)
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            flatten_size = x.numel()
+
+        self.fc1 = nn.Linear(flatten_size, 128)
         self.fc2 = nn.Linear(128, numClasses)
 
     def forward(self, x):

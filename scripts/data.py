@@ -1,11 +1,12 @@
 from pathlib import Path
 import numpy as np
 import torch
+import time
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 
 class DatasetPrep(Dataset):
-    def __init__(self, processedDir, split='train', testSize=0.2, randomState=42):
+    def __init__(self, processedDir, split='train', testSize=0.2, randomState=42, preload=True):
         self.processedDir = Path(processedDir)
         self.genres = sorted([p.name for p in self.processedDir.iterdir() if p.is_dir()])
 
@@ -25,15 +26,26 @@ class DatasetPrep(Dataset):
         if split=='train':
             self.files = trainFiles
             self.labels = trainLabels
-        else:
+        elif split == 'test':
             self.files = testFiles
             self.labels = testLabels
+
+        self.preload = preload
+        if self.preload:
+            print(f"Preloading {len(self.files)} spectrograms into RAM...")
+            self.data = [np.load(f) for f in self.files]
 
     def __len__(self):
         return len(self.files)
     
     def __getitem__(self, idx):
-        mel = np.load(self.files[idx])
+        # start = time.time()
+        if self.preload:
+            mel = self.data[idx]
+        else:
+            mel = np.load(self.files[idx])
+        # print("getitem time:", time.time()-start)
+
         melTensor = torch.tensor(mel, dtype=torch.float32).unsqueeze(0)
         labelTensor = torch.tensor(self.labels[idx], dtype=torch.long)
         return melTensor, labelTensor
