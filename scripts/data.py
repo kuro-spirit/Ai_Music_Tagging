@@ -1,6 +1,8 @@
 from pathlib import Path
 import numpy as np
 import torch
+import torchaudio
+import random
 import time
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
@@ -26,7 +28,12 @@ class DatasetPrep(Dataset):
         if split=='train':
             self.files = trainFiles
             self.labels = trainLabels
+            self.specAugment = torch.nn.Sequential(
+            torchaudio.transforms.FrequencyMasking(freq_mask_param=15),
+            torchaudio.transforms.TimeMasking(time_mask_param=30)
+            )
         elif split == 'test':
+            self.specAugment = None
             self.files = testFiles
             self.labels = testLabels
 
@@ -47,5 +54,9 @@ class DatasetPrep(Dataset):
         # print("getitem time:", time.time()-start)
 
         melTensor = torch.tensor(mel, dtype=torch.float32).unsqueeze(0)
+
+        if self.specAugment and random.random() < 0.5:
+            melTensor = self.specAugment(melTensor)
+
         labelTensor = torch.tensor(self.labels[idx], dtype=torch.long)
         return melTensor, labelTensor

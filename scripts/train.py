@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.append('../')
 
 import torch
@@ -11,14 +12,19 @@ from model import CNNGenreClassifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from datetime import datetime as dt
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+SAVE_DIR = "models"  # folder where you want to store models
 
 BATCH_SIZE = 64
-EPOCHS = 10
+EPOCHS = 32
 PROCESSED_PATH = "data/processed"
 LR = 1e-3
+PATIENCE = 5
+
+model_path = os.path.join(SAVE_DIR, "best_model.pt")
 
 def evaluate(model, loader, criterion):
     model.eval()
@@ -59,9 +65,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    print("Model running on:", next(model.parameters()).device)
-    print("Train samples:", len(trainDataset))
-    print("Validation samples:", len(testDataset))
+    print("Train samples:", len(trainDataset), "Validation samples:", len(testDataset))
     
     bestTestAcc = 0
 
@@ -71,6 +75,8 @@ def main():
     scaler = GradScaler()
 
     startTime = dt.now()
+
+    noEpochsImprove = 0
 
     for epoch in range(EPOCHS):
         model.train()
@@ -102,8 +108,14 @@ def main():
               f"testLoss={testLoss:.4f}, testAcc={testAcc:.3f}")
         
         if testAcc > bestTestAcc:
+            noEpochsImprove = 0
             bestTestAcc = testAcc
-            torch.save(model.state_dict(), "best_model.pt")
+            torch.save(model.state_dict(), model_path)
+        else:
+            noEpochsImprove += 1
+            if noEpochsImprove > PATIENCE:
+                print("Early stopping triggered")
+                break
 
         # after each epoch
         trainLosses.append(avgTrainLoss)
@@ -115,7 +127,8 @@ def main():
     endTime = dt.now()
 
     cm = confusion_matrix(testLabels, testPreds)
-    print("Confusion matrix:\n", cm)
+    print("Confusion matrix:\n")
+    plot_confusion_matrix(cm, trainDataset.genres)
 
     plt.figure(figsize=(10,4))
     plt.subplot(1,2,1)
@@ -132,6 +145,17 @@ def main():
     plt.show()
 
     print(f"Run time: {endTime - startTime}")
+
+def plot_confusion_matrix(cm, classNames):
+    plt.figure(figsize=(10,8))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=classNames,
+                yticklabels=classNames)
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title("Confusion Matrix")
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     main()

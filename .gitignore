@@ -1,5 +1,8 @@
 # Data files
 data/
 
-#Virtual environment
+# Virtual environment
 venv/
+
+# Model
+models/
