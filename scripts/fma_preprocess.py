@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import librosa
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import json
 
@@ -54,3 +55,18 @@ def preprocess_all(fmaDir, metadataCsv, outputDir):
 
 if __name__ == "__main__":
     preprocess_all(FMA_DIR, TRACKS_CSV, OUTPUT_DIR)
+
+    sample_id = "000005"
+    path = f"data/fma_spectrograms/melSpec/{sample_id}.npy"
+
+    mel = np.load(path)
+    print("Mel Spectrogram shape:", mel.shape)
+
+    plt.figure(figsize=(10, 4))
+    plt.imshow(mel, aspect='auto', origin='lower', cmap='magma')
+    plt.title(f"Mel Spectrogram for Track {sample_id}")
+    plt.xlabel("Time frames")
+    plt.ylabel("Mel frequency bins")
+    plt.colorbar(format="%+2.0f dB")
+    plt.tight_layout()
+    plt.show()

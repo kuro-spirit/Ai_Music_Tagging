@@ -16,7 +16,7 @@ class FMADataset(Dataset):
         split_csv = os.path.join(processed_path, f"{split}_split.csv")
         if os.path.exists(split_csv):
             split_ids = pd.read_csv(split_csv)['trackId'].astype(str).str.zfill(6)
-            self.labels_df = pd.read_csv(os.path.join(processed_path, "labels.csv"))
+            self.labels_df = self.labels_df[self.labels_df['trackId'].astype(str).str.zfill(6).isin(split_ids)]
 
         # Create mapping from original genre IDs to 0-based index
         unique_genres = sorted(self.labels_df['genreId'].unique())
