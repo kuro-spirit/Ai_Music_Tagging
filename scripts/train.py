@@ -7,7 +7,7 @@ from torch import nn, optim
 torch.backends.cudnn.benchmark = True
 from torch.utils.data import DataLoader
 from torch.amp import autocast, GradScaler
-from data import DatasetPrep
+from GTZAN_data import DatasetPrep
 from model import CNNGenreClassifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
