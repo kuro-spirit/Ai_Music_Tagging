@@ -61,13 +61,13 @@ def main():
 
     # Inspect shape
     exampleBatch, _ = next(iter(trainLoader))
-    print("Example batch shape:", exampleBatch.shape)
+    # print("Example batch shape:", exampleBatch.shape)
 
     model = CNNGenreClassifier(numClasses).to(DEVICE)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    print("Train samples:", len(trainDataset), "Validation samples:", len(testDataset))
+    # print("Train samples:", len(trainDataset), "Validation samples:", len(testDataset))
     
     bestTestAcc = 0
 

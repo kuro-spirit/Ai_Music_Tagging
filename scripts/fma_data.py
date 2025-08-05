@@ -16,7 +16,14 @@ class FMADataset(Dataset):
         split_csv = os.path.join(processed_path, f"{split}_split.csv")
         if os.path.exists(split_csv):
             split_ids = pd.read_csv(split_csv)['trackId'].astype(str).str.zfill(6)
-            self.labels_df = self.labels_df[self.labels_df['trackId'].astype(str).str.zfill(6).isin(split_ids)]
+            self.labels_df = pd.read_csv(os.path.join(processed_path, "labels.csv"))
+
+        # Create mapping from original genre IDs to 0-based index
+        unique_genres = sorted(self.labels_df['genreId'].unique())
+        self.genre_to_label = {genre: idx for idx, genre in enumerate(unique_genres)}
+
+        # Apply mapping to the dataset
+        self.labels_df['genreId'] = self.labels_df['genreId'].map(self.genre_to_label)
 
         self.preload = preload
         if self.preload:
@@ -26,7 +33,7 @@ class FMADataset(Dataset):
                 mel = (mel - mel.min()) / (mel.max() - mel.min() + EPS)
                 self.data.append((mel, row['genreId']))
 
-        self.genres = sorted(self.labels_df['genreId'].unique())
+        self.genres = list(self.genre_to_label.values())
 
     def __len__(self):
         return len(self.labels_df)
@@ -51,5 +58,5 @@ class FMADataset(Dataset):
 
         mel = torch.tensor(mel, dtype=torch.float32).unsqueeze(0)  # (1, n_mels, time)
         label = torch.tensor(label, dtype=torch.long)
-        print("Label value:", label)
+        # print("Label value:", label)
         return mel, label
