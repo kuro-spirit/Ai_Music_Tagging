@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class CNNGenreClassifier(nn.Module):
-    def __init__(self, numClasses, input_shape=(1, 128, 216)):
+    def __init__(self, numClasses, input_shape=(1, 128, 1291)):
         super().__init__()
         # Filters that slide over image, and each filter detects local patterns. 
         # Different layers find different patterns

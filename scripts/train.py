@@ -7,7 +7,7 @@ from torch import nn, optim
 torch.backends.cudnn.benchmark = True
 from torch.utils.data import DataLoader
 from torch.amp import autocast, GradScaler
-from GTZAN_data import DatasetPrep
+from fma_data import FMADataset
 from model import CNNGenreClassifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
@@ -20,7 +20,7 @@ SAVE_DIR = "models"  # folder where you want to store models
 
 BATCH_SIZE = 64
 EPOCHS = 32
-PROCESSED_PATH = "data/processed"
+PROCESSED_PATH = "data/fma_spectrograms"
 LR = 1e-3
 PATIENCE = 5
 
@@ -50,12 +50,12 @@ def evaluate(model, loader, criterion):
 
 
 def main():
-    trainDataset = DatasetPrep(PROCESSED_PATH, split='train', preload=True)
-    testDataset = DatasetPrep(PROCESSED_PATH, split='test', preload=True)
+    trainDataset = FMADataset(PROCESSED_PATH, split='train', preload=True)
+    testDataset = FMADataset(PROCESSED_PATH, split='test', preload=True)
     numClasses = len(trainDataset.genres)
 
-    trainLoader = DataLoader(trainDataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=12, pin_memory=True)
-    testLoader = DataLoader(testDataset, batch_size=BATCH_SIZE, num_workers=12, pin_memory=True)
+    trainLoader = DataLoader(trainDataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, pin_memory=True)
+    testLoader = DataLoader(testDataset, batch_size=BATCH_SIZE, num_workers=0, pin_memory=True)
 
     # Inspect shape
     exampleBatch, _ = next(iter(trainLoader))
