@@ -54,6 +54,8 @@ def main():
     testDataset = FMADataset(PROCESSED_PATH, split='test', preload=True)
     numClasses = len(trainDataset.genres)
 
+    print("Number of classes detected:", numClasses)
+
     trainLoader = DataLoader(trainDataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, pin_memory=True)
     testLoader = DataLoader(testDataset, batch_size=BATCH_SIZE, num_workers=0, pin_memory=True)
 

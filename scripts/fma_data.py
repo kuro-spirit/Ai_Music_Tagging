@@ -23,7 +23,7 @@ class FMADataset(Dataset):
             self.data = []
             for idx, row in self.labels_df.iterrows():
                 mel = np.load(os.path.join(self.mel_dir, f"{int(row['trackId']):06d}.npy"))
-                mel = (mel - mel.min()) / (mel.max() - mel.min())
+                mel = (mel - mel.min()) / (mel.max() - mel.min() + EPS)
                 self.data.append((mel, row['genreId']))
 
         self.genres = sorted(self.labels_df['genreId'].unique())
@@ -43,6 +43,13 @@ class FMADataset(Dataset):
             mel = (mel - mel.min()) / (mel.max() - mel.min() + EPS)
             label = row['genreId']
 
+        if mel.shape[1] < MAX_FRAMES:
+            pad_width = MAX_FRAMES - mel.shape[1]
+            mel = np.pad(mel, ((0, 0), (0, pad_width)), mode='constant')
+        else:
+            mel = mel[:, :MAX_FRAMES]
+
         mel = torch.tensor(mel, dtype=torch.float32).unsqueeze(0)  # (1, n_mels, time)
         label = torch.tensor(label, dtype=torch.long)
+        print("Label value:", label)
         return mel, label
