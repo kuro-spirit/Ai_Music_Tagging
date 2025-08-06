@@ -12,6 +12,7 @@ from model import CNNGenreClassifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
+plt.ion() 
 import seaborn as sns
 from datetime import datetime as dt
 
@@ -145,6 +146,7 @@ def main():
     plt.title('Accuracy')
     plt.legend()
     plt.show()
+    plt.savefig("output.png")
 
     print(f"Run time: {endTime - startTime}")
 
