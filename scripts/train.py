@@ -20,7 +20,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 SAVE_DIR = "models"  # folder where you want to store models
 
 BATCH_SIZE = 64
-EPOCHS = 32
+EPOCHS = 150
 PROCESSED_PATH = "data/fma_spectrograms"
 LR = 1e-3
 PATIENCE = 5
@@ -160,6 +160,7 @@ def plot_confusion_matrix(cm, classNames):
     plt.title("Confusion Matrix")
     plt.tight_layout()
     plt.show()
+    plt.savefig("output.png")
 
 if __name__ == "__main__":
     main()
