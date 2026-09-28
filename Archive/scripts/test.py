@@ -2,7 +2,7 @@ import torch
 import torchaudio
 import numpy as np
 from pathlib import Path
-from model import CNNGenreClassifier
+from Archive.scripts.model import CNNGenreClassifier
 from data import DatasetPrep
 import librosa
 import librosa.display

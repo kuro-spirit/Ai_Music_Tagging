@@ -7,8 +7,8 @@ from torch import nn, optim
 torch.backends.cudnn.benchmark = True
 from torch.utils.data import DataLoader
 from torch.amp import autocast, GradScaler
-from fma_data import FMADataset
-from model import CNNGenreClassifier
+from Archive.scripts.fma_data import FMADataset
+from Archive.scripts.model import CNNGenreClassifier
 from sklearn.metrics import confusion_matrix
 import numpy as np
 import matplotlib.pyplot as plt
