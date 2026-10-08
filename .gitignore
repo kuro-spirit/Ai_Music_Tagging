@@ -6,3 +6,7 @@ venv/
 
 # Model
 models/
+
+# Documentation
+Documentation.docx
+~$cumentation.docx
