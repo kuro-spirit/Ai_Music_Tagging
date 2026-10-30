@@ -7,7 +7,7 @@ from pathlib import Path
 URL = "https://www.googleapis.com/youtube/v3/playlistItems"
 PARAMS = {
     "part": "snippet",
-    "playlistId": "PLwfmP9Dv35SzjdwmCk__I-jzxSf7eynyO",
+    "playlistId": "PLwfmP9Dv35Sz4tiuoJFxgO4Yoyh8-Lx-x",
     "maxResults": 50,
     "key": os.environ.get("YOUTUBE_API_KEY")
 }
@@ -35,10 +35,28 @@ def save_downloaded(data: dict, file: str=DOWNLOAD_DIR / "downloaded.json") -> N
 
 def call_ollama(title: str, model: str="qwen2.5:14b") -> str:
     prompt=f"""
-            Format this youtube video title: {title}, making sure to remove all flavour text in the title.
-            Return a JSON with keys artist and title.
-            If the artist name isn't clear, or the name isn't in the correct language search online for the correct one.
-            Keep the language of both the artist and title to the same as the song.
+            Task: Extract the main artist and song title from a YouTube video title.
+
+            Output: A JSON object with key Artist and Title.
+
+            Rules:
+            - Extract the main artist and song title from the YouTube video title
+            - Remove any extra flavour texts that isn't the artist name or song title (e.g. MV, Official, Lyric Video)
+            - IF the artist cannot be found in the title, use your own knowledge to identify the correct artist
+            - Give one artist ONLY
+            - Keep the artist and title in the language of the song
+            - For Chinese songs, use traditional script for HK, TW and Cantonese artists, and simplified for mainland artists.
+            
+            Examples:
+            - Video Title: 光辉岁月 Beyond (歌词版) Sample Output: {{"Artist": "Beyond", "Title": "光輝歲月"}}
+            - Video Title: Beyond 真的爱你 Zan Dik Ngoi Nei Sample Output: {{"Artist": "Beyond", "Title": "真的愛你"}}
+            - Video Title: 我的驕傲 Sample Output: {{"Artist": "容祖兒", "Title": "我的驕傲"}}
+            - Video Title: Eric周興哲《你，好不好？ How Have You Been?》Official Music Video《遺憾拼圖》片尾曲 Sample Output: {{"Artist": "周興哲", "Title": "你，好不好"}}
+            - Video Title: Kaze Ni Fukarete Sample Output: {{"Artist": "福原 遥", "Title": "風に吹かれて"}}
+            - Video Title: 黃小琥 Tiger Huang - 沒那麼簡單 [Official 官方完整版MV] Sample Output: {{"Artist": "黃小琥", "Title": "沒那麼簡單"}}
+            - Video Title: 薛之谦 Joker Xue - 暧昧 歌词 Sample Output: {{"Artist": "薛之谦", "Title": "暧昧"}}
+            
+            Convert this video title: {title}
             """
 
     response = requests.post(
@@ -63,6 +81,7 @@ def download_playlist():
 
         response = requests.get(URL, PARAMS)
         data = response.json()
+        # print(response.status_code, data)
 
         for item in data["items"]:
             snippet = item["snippet"]
@@ -71,7 +90,7 @@ def download_playlist():
             channel_name = snippet.get("videoOwnerChannelTitle")
 
             result = json.loads(call_ollama(video_title))
-            name = f"{result['artist']}--{result['title']}"
+            name = f"{result['Artist']}--{result['Title']}"
 
             if snippet["title"] in ("Private video", "Deleted video"):
                 continue
