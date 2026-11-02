@@ -2,6 +2,7 @@ import os
 import requests
 import subprocess
 import json
+from mutagen.id3 import ID3, ID3NoHeaderError, TIT2, TPE1
 from pathlib import Path
 
 URL = "https://www.googleapis.com/youtube/v3/playlistItems"
@@ -32,6 +33,14 @@ def load_downloaded(file: str=DOWNLOAD_DIR / "downloaded.json") -> dict:
 def save_downloaded(data: dict, file: str=DOWNLOAD_DIR / "downloaded.json") -> None:
     with open(file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+def tag_song(path: Path, title: str, artist: str):
+    tags = ID3(path)
+
+    tags.add(TIT2(encoding=3, text=title))
+    tags.add(TPE1(encoding=3, text=artist))
+
+    tags.save(path)
 
 def call_ollama(title: str, model: str="qwen2.5:14b") -> str:
     prompt=f"""
@@ -89,14 +98,14 @@ def download_playlist():
             video_title = snippet["title"]
             channel_name = snippet.get("videoOwnerChannelTitle")
 
-            result = json.loads(call_ollama(video_title))
-            name = f"{result['Artist']}--{result['Title']}"
-
             if snippet["title"] in ("Private video", "Deleted video"):
                 continue
 
             if song_id in songs:
                 continue
+
+            result = json.loads(call_ollama(video_title))
+            name = f"{result['Artist']}--{result['Title']}"
 
             downloaded = download_song(song_id, name)
 
@@ -107,6 +116,7 @@ def download_playlist():
                 }
 
                 save_downloaded(songs)
+                tag_song(DOWNLOAD_DIR / f"{name}.mp3", result['Title'], result['Artist'])
 
         page_token = data.get("nextPageToken")
         if not page_token:
@@ -124,3 +134,7 @@ if __name__ == "__main__":
 
     # for title in Test_titles: 
     #     print(call_ollama(title))
+
+    # path = r"D:\Music\PhonePlaylist\test\Beyond--真的愛你.mp3"
+
+    # tag_song(path, "光輝歲月", "Beyond")
